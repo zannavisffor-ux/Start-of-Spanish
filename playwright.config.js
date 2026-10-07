@@ -20,5 +20,6 @@ export default defineConfig({
   projects: [
     { name: 'phone', use: { viewport: { width: 390, height: 844 } } },
     { name: 'tablet', use: { viewport: { width: 820, height: 1180 } } },
+    { name: 'ipad-landscape', use: { viewport: { width: 1180, height: 820 } } },
   ],
 });

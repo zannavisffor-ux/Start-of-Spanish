@@ -1,0 +1,17 @@
+export const scenes=[
+{id:'comer',title:'A comer',zh:'吃饭',icon:'🍽️',phrases:[['Quiero agua.','我想喝水。','💧','child'],['Quiero más.','我还想要。','🍎','child'],['Tengo hambre.','我饿了。','🍞','child'],['No quiero más.','我不想再吃了。','🖐️','child'],['Siéntate, por favor.','请坐下。','🪑','adult']]},
+{id:'vestir',title:'A vestirse',zh:'穿衣',icon:'👕',phrases:[['Quiero esta camiseta.','我想穿这件上衣。','👕','child'],['Ayúdame, por favor.','请帮帮我。','🫂','child'],['Ponte los zapatos.','穿上鞋子。','👞','adult'],['Quítate el abrigo.','脱下外套。','🧥','adult'],['Tengo frío.','我冷。','🧣','child']]},
+{id:'lavar',title:'A lavarse',zh:'洗手',icon:'🧼',phrases:[['Vamos a lavarnos las manos.','我们来洗手。','🖐️','adult'],['Abre el grifo.','打开水龙头。','🚿','adult'],['Usa el jabón.','用肥皂。','🧼','adult'],['Cierra el grifo.','关上水龙头。','💧','adult'],['Ya está.','好啦。','👍','child']]},
+{id:'bano',title:'Al baño',zh:'上厕所',icon:'🚽',phrases:[['Quiero hacer pis.','我想尿尿。','🚽','child'],['Quiero hacer caca.','我想便便。','🚽','child'],['Vamos al baño.','我们去厕所。','🚪','adult'],['Necesito ayuda.','我需要帮助。','🫂','child'],['Lávate las manos.','洗洗手。','🧼','adult']]},
+{id:'jugar',title:'A jugar',zh:'玩耍',icon:'🧸',phrases:[['Es mi turno.','轮到我了。','🧸','child'],['¿Jugamos?','我们一起玩吗？','👪','child'],['Te toca.','轮到你了。','🖐️','adult'],['Quiero el coche.','我想要小汽车。','🚗','child'],['Vamos a recoger.','我们来收拾。','🧺','adult']]},
+{id:'cole',title:'Al cole',zh:'上学',icon:'🎒',phrases:[['Buenos días.','早上好。','☀️','child'],['¡Hasta luego!','待会儿见！','👋','child'],['Vamos al cole.','我们去学校。','🎒','adult'],['Coge tu mochila.','拿上你的背包。','🎒','adult'],['Ven conmigo.','跟我来。','🚶','adult']]},
+{id:'ayuda',title:'Pido ayuda',zh:'求助',icon:'🫂',phrases:[['Ayúdame, por favor.','请帮帮我。','🫂','child'],['No puedo.','我做不到。','🖐️','child'],['Me duele.','我疼。','😢','child'],['No entiendo.','我不明白。','👂','child'],['Estoy aquí.','我在这里。','👪','adult'],['Vamos juntos.','我们一起。','🚶','adult']]}
+].map(s=>({...s,phrases:s.phrases.map(([es,zh,picture,role],i)=>({es,zh,picture,role,id:`${s.id}-${i}`}))}));
+export const themes=[
+{id:'cars',title:'Coches',zh:'小汽车',category:'vehiculos',words:['coche','autobús','camión','bicicleta'],sentence:'Quiero el coche.',sentenceZh:'我想要小汽车。',instruction:'Busca el coche rojo.',instructionZh:'找找红色的小汽车。',activity:'关掉屏幕，一起在家里找红色玩具车。让孩子说 Quiero el coche，再把车交给他。没有红色车，可以一起画一辆。',picture:'🚗'},
+{id:'animals',title:'Animales',zh:'动物',category:'animales',words:['perro','gato','conejo','vaca'],sentence:'¿Jugamos?',sentenceZh:'我们一起玩吗？',instruction:'Busca el perro.',instructionZh:'找找小狗。',activity:'离开屏幕，找一个动物玩偶或图片。大人模仿叫声，孩子指一指、说词，再交换角色。',picture:'🐶'},
+{id:'food',title:'A comer',zh:'吃饭',category:'comida',words:['pan','leche','agua','manzana'],sentence:'Quiero agua.',sentenceZh:'我想喝水。',instruction:'Busca el agua.',instructionZh:'找找水。',activity:'离开屏幕，到餐桌找自己的水杯。大人问 ¿Quieres agua?，等待孩子用词、手势或短句回应。',picture:'💧'},
+{id:'clothes',title:'A vestirse',zh:'穿衣',category:'ropa',words:['camiseta','zapatos','abrigo','calcetines'],sentence:'Ayúdame, por favor.',sentenceZh:'请帮帮我。',instruction:'Busca los zapatos.',instructionZh:'找找鞋子。',activity:'离开屏幕，一起拿上衣和鞋子。大人说 Ponte los zapatos，孩子需要帮助时示范 Ayúdame, por favor。',picture:'👞'},
+{id:'hands',title:'Manos limpias',zh:'洗手',category:'cuerpo',words:['mano','dedo','pulgar','pie'],sentence:'Ya está.',sentenceZh:'好啦。',instruction:'Busca la mano.',instructionZh:'找找手。',activity:'离开屏幕，一起到洗手台。大人说 Vamos a lavarnos las manos，让孩子边做边听，洗好后说 Ya está。',picture:'🖐️'}
+];
+export function dayNumber(date=new Date()){return Math.floor(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())/86400000);}

@@ -17,4 +17,4 @@ const sentences = [
 ];
 export const bilingualCategories = categories.map((c,i)=>({...c,words:c.words.map((w,j)=>({...w,zh:translations[i].split(',')[j],...(i===0?{sentence:sentences[j][0],sentenceZh:sentences[j][1],tip:`指着图片，和孩子一起说 ${w.word}（${translations[i].split(',')[j]}），再读短句，让孩子用声音或动作回应。`}:{})}))}));
 export function shuffle(items,random=Math.random){const result=[...items];for(let i=result.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[result[i],result[j]]=[result[j],result[i]];}return result;}
-export function createRound(words,previous=null,random=Math.random){const pool=words.filter(w=>w.word!==previous);const target=pool[Math.floor(random()*pool.length)];const others=shuffle(words.filter(w=>w.word!==target.word),random).slice(0,3);return {target,options:shuffle([target,...others],random)};}
+export function createRound(words,previous=null,random=Math.random,count=4){const pool=words.filter(w=>w.word!==previous);const target=pool[Math.floor(random()*pool.length)];const others=shuffle(words.filter(w=>w.word!==target.word),random).slice(0,Math.max(1,Math.min(count-1,words.length-1)));return {target,options:shuffle([target,...others],random)};}
