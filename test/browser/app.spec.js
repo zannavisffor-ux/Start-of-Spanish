@@ -5,7 +5,7 @@ test('home, every category, complete navigation and local pictures',async({page}
  await expect(page.locator('.vehicle-feature')).toContainText('Vehículos');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const routes=await page.locator('.vehicle-feature,.category').evaluateAll(links=>links.map(a=>a.getAttribute('href')));
- for(const route of routes){await page.goto('./'+route);await page.locator('.mode-card').first().click();await expect(page.locator('.word-card')).toBeVisible();expect(await page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+ for(const route of routes){await page.goto('./'+route);await page.locator('.mode-card').first().click();await expect(page.locator('.word-card')).toBeVisible();await expect.poll(()=>page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
  await page.goto('./#/vehiculos/0');await page.reload();await expect(page.locator('.word')).toHaveText('el coche');await expect(page.locator('#previous')).toBeDisabled();
  await page.locator('#next').click();await expect(page.locator('.word')).toHaveText('el autobús');await page.keyboard.press('ArrowLeft');await expect(page.locator('.word')).toHaveText('el coche');
  await page.goto('./#/vehiculos/25');await expect(page.locator('#next')).toBeDisabled();await page.locator('.finish').click();await expect(page.locator('.vehicle-feature')).toBeVisible();
@@ -67,7 +67,7 @@ test('Spanish reading list has ordered books, recommendations and safe external 
 
 test('life scenes provide separated parent explanations and daily activities can repeat',async({page})=>{
  await page.addInitScript(()=>{window.spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{getVoices:()=>[],addEventListener(){},cancel(){},speak(u){window.spoken.push(u.text);}}});});
- await page.goto('./#/scenes');await expect(page.locator('.scene-link')).toHaveCount(7);
+ await page.goto('./#/scenes');await expect(page.locator('.scene-link')).toHaveCount(8);
  await page.locator('a[href="#/scene/comer/0"]').click();await page.locator('.word-card').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe('Quiero agua.');await expect(page.locator('.word-zh')).toHaveText('我想喝水。');await expect(page.locator('.mimi')).toHaveCount(0);await page.locator('#next').click();await expect(page.locator('.word')).toHaveText('Quiero más.');
  await page.goto('./#/today/themes');await page.locator('a[href="#/today/0"]').click();
  await expect(page.locator('.word')).toHaveText('el coche');
@@ -75,4 +75,16 @@ test('life scenes provide separated parent explanations and daily activities can
  await page.locator('#daily-next').click();await expect(page.locator('.game-option')).toHaveCount(2);
  const options=await page.locator('.game-option img').evaluateAll(imgs=>imgs.map(i=>i.getAttribute('src')));const correct=options.findIndex(s=>s.endsWith('/1f697.svg'));await page.locator('.game-option').nth(correct).click();await expect(page.locator('.screen-break')).toContainText('关掉屏幕');
  await page.locator('#repeat-day').click();await expect(page.locator('.word')).toHaveText('el coche');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('greetings are bilingual and every phrase is spoken in Spanish',async({page})=>{
+ await page.addInitScript(()=>{window.spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{getVoices:()=>[],addEventListener(){},cancel(){},speak(u){window.spoken.push(u.text);}}});});
+ const {scenes}=await import('../../src/life.js');const greetings=scenes.find(s=>s.id==='saludos');
+ await page.goto('./#/scenes');await page.locator('a[href="#/scene/saludos/0"]').click();await expect(page.locator('#previous')).toBeDisabled();
+ for(let i=0;i<greetings.phrases.length;i++){
+  const p=greetings.phrases[i];await expect(page.locator('.word')).toHaveText(p.es);await expect(page.locator('.word-zh')).toHaveText(p.zh);
+  await page.locator('.word-card').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe(p.es);
+  if(i<greetings.phrases.length-1){await page.locator('#next').click();await expect(page.locator('.word-navigation > span')).toHaveText(`${i+2} / 11`);}
+ }
+ await expect(page.locator('#next')).toBeDisabled();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
