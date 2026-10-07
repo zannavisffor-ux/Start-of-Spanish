@@ -1,15 +1,19 @@
 import { bilingualCategories, createRound } from './bilingual.js';
 import { books } from './books.js';
+import { readingList } from './reading-list.js';
 const base=import.meta.env.BASE_URL;
 let round=null,mode='listen',solved=false;
 const escape = s=>s.replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
 export function renderActivity(app,art,speak){
  const [,route,id,raw]=location.hash.replace(/^#/,'').split('/');
- if(!['books','book','game','gallery'].includes(route))return false;
+ if(!['books','reading','book','game','gallery'].includes(route))return false;
  const header=title=>`<div class="shell"><header class="header"><a class="home-button" href="#">⌂ 首页</a><h1 class="activity-title">${title}</h1></header><main class="activity">`;
  const status='<p id="speech-status" class="speech-status" role="status">点喇叭，听西班牙语</p>';
+ if(route==='reading'){
+ app.innerHTML=header('西班牙语绘本')+`<p class="reading-intro">和 Mimi 一起读 · Cuentos para compartir</p><div class="reading-grid">${readingList.map(b=>`<article class="reading-card"><div class="reading-icon">${art(b.icon)}</div>${b.recommended?'<span class="reading-badge">推荐先读</span>':''}<h2 lang="es">${b.title}</h2><h3>${b.zh}</h3><p>${b.description}</p><small>来源：${b.source}</small><div class="reading-buttons"><a class="primary" href="${b.pdf}" target="_blank" rel="noopener noreferrer" aria-label="阅读 PDF：${b.zh}（新标签页）">阅读 PDF ↗</a>${b.web?`<a class="secondary" href="${b.web}" target="_blank" rel="noopener noreferrer" aria-label="在线阅读：${b.zh}（新标签页）">在线阅读 ↗</a>`:''}</div></article>`).join('')}</div><p class="reading-note">阅读链接会在新标签页打开。</p><a class="gallery-link" href="#/books">也来读一读本站互动小绘本 →</a></main></div>`;return true;
+ }
  if(route==='books'){
- app.innerHTML=header('小绘本 · Cuentos')+`<div class="book-grid">${books.map(b=>`<a class="book-cover" href="#/book/${b.id}/0"><img src="${base}${b.cover}" alt="${b.zh}"><h2 lang="es">${b.title}</h2><p>${b.zh}</p><small>${b.pages.length} 页 · 中西双语</small></a>`).join('')}</div></main></div>`;return true;
+ app.innerHTML=header('小绘本 · Cuentos')+`<a class="gallery-link" href="#/reading">西班牙语绘本 · 阅读 PDF →</a><div class="book-grid">${books.map(b=>`<a class="book-cover" href="#/book/${b.id}/0"><img src="${base}${b.cover}" alt="${b.zh}"><h2 lang="es">${b.title}</h2><p>${b.zh}</p><small>${b.pages.length} 页 · 中西双语</small></a>`).join('')}</div></main></div>`;return true;
  }
  if(route==='book'){
  const b=books.find(b=>b.id===id);if(!b){location.hash='/books';return true;}

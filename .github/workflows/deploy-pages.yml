@@ -34,6 +34,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Build and test the Pages site
         run: npm run test:pages
+      - name: Check external reading links
+        run: node scripts/check-reading-links.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

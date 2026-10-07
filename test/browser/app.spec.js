@@ -30,7 +30,18 @@ test('bilingual sentences, separate speech, gallery and shuffled category rounds
 test('both books can be read to completion with attribution and no overflow',async({page})=>{
  await page.goto('./#/books');await expect(page.locator('.book-cover')).toHaveCount(2);
  const links=await page.locator('.book-cover').evaluateAll(els=>els.map(e=>e.getAttribute('href')));
- for(const link of links){await page.goto('./'+link);await expect(page.locator('.story-page')).toBeVisible();await expect(page.locator('#previous')).toBeDisabled();for(let i=0;i<10;i++){expect(await page.locator('.story-page img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);if(await page.locator('#next').isDisabled())break;await page.locator('#next').click();}await expect(page.locator('.finish')).toBeVisible();await page.locator('.mimi summary').click();await expect(page.locator('.mimi')).toContainText('CC BY 4.0');}
+ for(const link of links){
+  const count=link.includes('/doing/')?8:6;
+  await page.goto('./'+link);await expect(page.locator('#previous')).toBeDisabled();
+  for(let i=0;i<count;i++){
+   await expect(page.locator('.word-navigation > span')).toHaveText(`${i+1} / ${count}`);
+   await expect.poll(()=>page.locator('.story-page img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   if(i<count-1){await page.locator('#next').click();await expect(page.locator('.word-navigation > span')).toHaveText(`${i+2} / ${count}`);}
+  }
+  await expect(page.locator('#next')).toBeDisabled();await expect(page.locator('.finish')).toBeVisible();
+  await page.locator('.mimi summary').click();await expect(page.locator('.mimi')).toContainText('CC BY 4.0');
+ }
 });
 
 test('game repeat speech, retry, success, next round and Mimi mode',async({page})=>{
@@ -40,4 +51,11 @@ test('game repeat speech, retry, success, next round and Mimi mode',async({page}
  const data=await import('../../src/bilingual.js');const {imagePath}=await import('../../src/data.js');const path=imagePath(data.bilingualCategories[0].words.find(w=>w.word===target).picture);const correct=imgs.findIndex(src=>src.endsWith(path));expect(correct).toBeGreaterThanOrEqual(0);
  await page.locator('.game-option').nth((correct+1)%4).click();await expect(page.locator('#game-feedback')).toContainText('再找一找');await expect(page.locator('#next-round')).toBeHidden();await page.locator('.game-option').nth(correct).click();await expect(page.locator('#game-feedback')).toContainText('真棒');await page.locator('#next-round').click();await page.locator('#question-listen').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).not.toBe(target);
  await page.locator('[data-mode="mimi"]').click();await expect(page.locator('#question-listen')).toHaveCount(0);await expect(page.locator('.mimi')).not.toHaveAttribute('open','');await page.locator('.mimi summary').click();await expect(page.locator('.mimi p').first()).toContainText('¿Dónde está');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('Spanish reading list has ordered books, recommendations and safe external links',async({page})=>{
+ await page.goto('./');await page.locator('a[href="#/reading"]').click();await expect(page.locator('.reading-card')).toHaveCount(4);await expect(page.locator('.reading-card h2')).toHaveText(['¿Dónde está Osito?','¡Un día muy ajetreado!','Un hermoso día','Soy maravilloso']);await expect(page.locator('.reading-badge')).toHaveCount(2);
+ await expect(page.locator('.reading-card').nth(0)).toContainText('推荐先读');await expect(page.locator('.reading-card').nth(1)).toContainText('推荐先读');await expect(page.locator('.reading-buttons a')).toHaveCount(6);
+ for(const link of await page.locator('.reading-buttons a').all()){await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel','noopener noreferrer');expect(new URL(await link.getAttribute('href')).protocol).toBe('https:');}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('.reading-card').first()).toContainText('CDC');await expect(page.locator('.reading-card').nth(1)).toContainText('Ririro／Book Dash');
 });
