@@ -5,8 +5,8 @@ test('home, every category, complete navigation and local pictures',async({page}
  await expect(page.locator('.vehicle-feature')).toContainText('Vehículos');
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  const routes=await page.locator('.vehicle-feature,.category').evaluateAll(links=>links.map(a=>a.getAttribute('href')));
- for(const route of routes){await page.goto('./'+route);await expect(page.locator('.word-card')).toBeVisible();expect(await page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
- await page.goto('./#/vehiculos/0');await expect(page.locator('.word')).toHaveText('el coche');await expect(page.locator('#previous')).toBeDisabled();
+ for(const route of routes){await page.goto('./'+route);await page.locator('.mode-card').first().click();await expect(page.locator('.word-card')).toBeVisible();expect(await page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0))).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+ await page.goto('./#/vehiculos/0');await page.reload();await expect(page.locator('.word')).toHaveText('el coche');await expect(page.locator('#previous')).toBeDisabled();
  await page.locator('#next').click();await expect(page.locator('.word')).toHaveText('el autobús');await page.keyboard.press('ArrowLeft');await expect(page.locator('.word')).toHaveText('el coche');
  await page.goto('./#/vehiculos/25');await expect(page.locator('#next')).toBeDisabled();await page.locator('.finish').click();await expect(page.locator('.vehicle-feature')).toBeVisible();
 });
@@ -21,10 +21,10 @@ test('unsupported speech shows a helpful message',async({page})=>{await page.add
 
 test('bilingual sentences, separate speech, gallery and shuffled category rounds',async({page})=>{
  await page.addInitScript(()=>{window.spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{getVoices:()=>[],addEventListener(){},cancel(){},speak(u){window.spoken.push(u.text);}}});});
- await page.goto('./#/vehiculos/0');await expect(page.locator('.mimi')).toContainText('小汽车');await expect(page.locator('.mimi')).not.toHaveAttribute('open','');await page.locator('#sentence-listen').click();await page.locator('.word-card').click();expect(await page.evaluate(()=>window.spoken)).toEqual(['El coche es rojo.','el coche']);
- await page.locator('.gallery-link').click();await expect(page.locator('.sound-tile')).toHaveCount(26);await page.locator('.sound-tile').nth(1).click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe('el autobús');
- await page.locator('.home-button').click();await page.locator('.vehicle-feature').click();const first=await page.locator('.word').textContent();const seen=[];for(let i=0;i<26;i++){seen.push(await page.locator('.word').textContent());if(i<25){await page.locator('#next').click();await expect(page.locator('.counter')).toHaveText(`${i+2} / 26`);}}
- expect(new Set(seen).size).toBe(26);await page.locator('.home-button').click();await page.locator('.vehicle-feature').click();await expect(page.locator('.word')).not.toHaveText(first);
+ await page.goto('./#/vehiculos/0');await expect(page.locator('.word-zh')).toHaveText('小汽车');await expect(page.locator('.sentence-zh')).toHaveText('小汽车是红色的。');await expect(page.locator('.mimi')).toHaveCount(0);await expect(page.locator('.gallery-link')).toHaveCount(0);await page.locator('#sentence-listen').click();await page.locator('.word-card').click();expect(await page.evaluate(()=>window.spoken)).toEqual(['El coche es rojo.','el coche']);
+ await page.locator('.home-button').click();await page.locator('a[href="#/gallery/vehiculos"]').click();await expect(page.locator('.sound-tile')).toHaveCount(26);await page.locator('.sound-tile').nth(1).click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe('el autobús');
+ await page.goto('./');await page.locator('.vehicle-feature').click();await page.locator('.mode-card').first().click();const first=await page.locator('.word').textContent();const seen=[];for(let i=0;i<26;i++){seen.push(await page.locator('.word').textContent());if(i<25){await page.locator('#next').click();await expect(page.locator('.counter')).toHaveText(`${i+2} / 26`);}}
+ expect(new Set(seen).size).toBe(26);await page.goto('./');await page.locator('.vehicle-feature').click();await page.locator('.mode-card').first().click();await expect(page.locator('.word')).not.toHaveText(first);
 });
 
 test('both books can be read to completion with attribution and no overflow',async({page})=>{
@@ -46,15 +46,15 @@ test('both books can be read to completion with attribution and no overflow',asy
 
 test('game repeats audio, allows retry, supports two/three pictures and all categories',async({page})=>{
  await page.addInitScript(()=>{window.spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{getVoices:()=>[],addEventListener(){},cancel(){},speak(u){window.spoken.push(u.text);}}});});
- await page.goto('./#/game');await expect(page.locator('.game-option')).toHaveCount(2);
- await page.locator('.game-settings summary').click();await page.locator('#game-count').selectOption('3');
+ await page.goto('./#/game/vehiculos/2');await expect(page.locator('.game-option')).toHaveCount(2);
+ await page.locator('a[href="#/game/vehiculos/3"]').click();
  await expect(page.locator('.game-option')).toHaveCount(3);await page.locator('#question-listen').click();const target=(await page.evaluate(()=>window.spoken)).at(-1);
  await page.locator('#question-listen').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe(target);
  const imgs=await page.locator('.game-option img').evaluateAll(els=>els.map(e=>e.getAttribute('src')));expect(new Set(imgs).size).toBe(3);
  const {vocabulary}=await import('../../src/vocabulary.js');const {imagePath}=await import('../../src/data.js');const w=vocabulary[0].words.find(w=>w.label===target);const path=w.picture.startsWith('/')?w.picture:imagePath(w.picture);const correct=imgs.findIndex(src=>src.endsWith(path));expect(correct).toBeGreaterThanOrEqual(0);
- await page.locator('.game-option').nth((correct+1)%3).click();await expect(page.locator('#game-feedback')).toContainText('再找一找');await expect(page.locator('#next-round')).toBeHidden();
+ await page.locator('.game-option').nth((correct+1)%3).click();await expect(page.locator('#game-feedback')).toContainText('再试一次');await expect(page.locator('#next-round')).toBeHidden();
  await page.locator('.game-option').nth(correct).click();await expect(page.locator('#game-feedback')).toContainText('真棒');await page.locator('#next-round').click();await page.locator('#question-listen').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).not.toBe(target);
- await page.locator('.game-settings summary').click();await page.locator('#game-category').selectOption('animales');await page.locator('.game-settings summary').click();await page.locator('#game-type').selectOption('phrases');await expect(page.locator('.game-option')).toHaveCount(3);
+ await page.goto('./#/game/animales/3');await expect(page.locator('.game-option')).toHaveCount(3);await page.goto('./#/game/frases/3');await expect(page.locator('.game-option')).toHaveCount(3);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
@@ -68,11 +68,11 @@ test('Spanish reading list has ordered books, recommendations and safe external 
 test('life scenes provide separated parent explanations and daily activities can repeat',async({page})=>{
  await page.addInitScript(()=>{window.spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};Object.defineProperty(window,'speechSynthesis',{value:{getVoices:()=>[],addEventListener(){},cancel(){},speak(u){window.spoken.push(u.text);}}});});
  await page.goto('./#/scenes');await expect(page.locator('.scene-link')).toHaveCount(7);
- await page.locator('a[href="#/scene/comer/0"]').click();await page.locator('.word-card').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe('Quiero agua.');await expect(page.locator('.mimi')).not.toHaveAttribute('open','');await page.locator('#next').click();await expect(page.locator('.word')).toHaveText('Quiero más.');
- await page.goto('./#/today');await page.locator('.daily-parent summary').click();await page.locator('#daily-theme').selectOption('0');
+ await page.locator('a[href="#/scene/comer/0"]').click();await page.locator('.word-card').click();expect((await page.evaluate(()=>window.spoken)).at(-1)).toBe('Quiero agua.');await expect(page.locator('.word-zh')).toHaveText('我想喝水。');await expect(page.locator('.mimi')).toHaveCount(0);await page.locator('#next').click();await expect(page.locator('.word')).toHaveText('Quiero más.');
+ await page.goto('./#/today/themes');await page.locator('a[href="#/today/0"]').click();
  await expect(page.locator('.word')).toHaveText('el coche');
  for(let i=0;i<4;i++){await page.locator('#daily-next').click();await expect(page.locator('.word')).toHaveText(['el autobús','el camión','la bicicleta','Quiero el coche.'][i]);}
  await page.locator('#daily-next').click();await expect(page.locator('.game-option')).toHaveCount(2);
- const options=await page.locator('.game-option img').evaluateAll(imgs=>imgs.map(i=>i.getAttribute('src')));const correct=options.findIndex(s=>s.endsWith('/1f697.svg'));await page.locator('.game-option').nth(correct).click();await expect(page.locator('.screen-break')).toContainText('离开屏幕');
+ const options=await page.locator('.game-option img').evaluateAll(imgs=>imgs.map(i=>i.getAttribute('src')));const correct=options.findIndex(s=>s.endsWith('/1f697.svg'));await page.locator('.game-option').nth(correct).click();await expect(page.locator('.screen-break')).toContainText('关掉屏幕');
  await page.locator('#repeat-day').click();await expect(page.locator('.word')).toHaveText('el coche');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

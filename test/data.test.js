@@ -25,3 +25,11 @@ import { vocabulary } from '../src/vocabulary.js';
 import { scenes,themes } from '../src/life.js';
 test('expanded vocabulary has articles, bilingual sentences and local pictures',()=>{for(const c of vocabulary)for(const w of c.words){assert.ok(w.label);assert.ok(w.sentence);assert.ok(w.sentenceZh);assert.ok(w.zh);if(!['colores','acciones'].includes(c.id))assert.match(w.label,/^(el|la|los|las) /);if(w.picture.startsWith('/'))assert.ok(existsSync('public'+w.picture));else if(!w.picture.startsWith('#'))assert.ok(existsSync('public'+imagePath(w.picture)));}assert.equal(vocabulary[0].words.length,26);});
 test('daily scenes are usable and two/three picture rounds have exactly one answer',()=>{assert.equal(scenes.length,7);for(const s of scenes){assert.ok(s.phrases.length>=4&&s.phrases.length<=6);for(const p of s.phrases){assert.ok(p.es);assert.ok(p.zh);assert.ok(['adult','child'].includes(p.role));assert.ok(existsSync('public'+imagePath(p.picture)));}}assert.ok(themes.every(t=>t.words.length>=3&&t.words.length<=5&&t.activity));for(const count of [2,3]){const r=createRound(vocabulary[0].words,null,Math.random,count);assert.equal(r.options.length,count);assert.equal(r.options.filter(w=>w.word===r.target.word).length,1);}});
+
+test('Spanish articles and varied bilingual example sentences are accurate for known cases',()=>{
+ const get=(id,word)=>vocabulary.find(c=>c.id===id).words.find(w=>w.word===word);
+ for(const [id,word,label] of [['comida','carne','la carne'],['comida','agua','el agua'],['ropa','gafas','las gafas'],['ropa','pijama','el pijama'],['casa','lámpara','la lámpara'],['cuerpo','mano','la mano']])assert.equal(get(id,word).label,label);
+ assert.equal(get('comida','carne').sentence,'Quiero un poco de carne.');assert.equal(get('comida','carne').sentenceZh,'我想吃一点肉。');
+ for(const c of vocabulary)for(const w of c.words){assert.ok(w.sentenceZh);assert.ok(!/^Mira\b/.test(w.sentence),w.word);}
+ assert.equal(get('animales','perro').sentence,'El perro corre.');assert.equal(get('ropa','abrigo').sentence,'Ponte el abrigo.');
+});
