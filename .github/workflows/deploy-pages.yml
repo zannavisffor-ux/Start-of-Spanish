@@ -36,6 +36,8 @@ jobs:
         run: npm run test:pages
       - name: Check external reading links
         run: node scripts/check-reading-links.js
+      - name: Locate official CDC book resources
+        run: node scripts/find-cdc-books.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
